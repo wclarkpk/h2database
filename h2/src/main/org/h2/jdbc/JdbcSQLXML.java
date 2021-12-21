@@ -46,6 +46,7 @@ import org.h2.value.Value;
 import org.w3c.dom.Node;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
@@ -56,8 +57,20 @@ import org.xml.sax.helpers.XMLReaderFactory;
 public final class JdbcSQLXML extends JdbcLob implements SQLXML {
 
     private static final Map<String,Boolean> secureFeatureMap = new HashMap<>();
-    private static final EntityResolver NOOP_ENTITY_RESOLVER = (publicId, systemId) -> new InputSource(new StringReader(""));
-    private static final URIResolver NOOP_URI_RESOLVER = (href, base) -> new StreamSource(new StringReader(""));
+
+    private static final EntityResolver NOOP_ENTITY_RESOLVER = new EntityResolver() {
+		@Override
+		public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
+			return new InputSource(new StringReader(""));
+		}
+	};
+
+    private static final URIResolver NOOP_URI_RESOLVER = new URIResolver() {
+		@Override
+		public Source resolve(String href, String base) throws TransformerException {
+			return new StreamSource(new StringReader(""));
+		}
+	};
 
     static {
         secureFeatureMap.put(XMLConstants.FEATURE_SECURE_PROCESSING, true);
